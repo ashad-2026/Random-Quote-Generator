@@ -75,9 +75,9 @@ class RandomQuoteGenerator:
 
         filtered = self.quotes
 
-        if author_filter != "Все" and author_filter:
+        if author_filter != "Все":
             filtered = [q for q in filtered if q["author"] == author_filter]
-        if topic_filter != "Все" and topic_filter:
+        if topic_filter != "Все":
             filtered = [q for q in filtered if q["topic"] == topic_filter]
 
         if not filtered:
@@ -87,10 +87,10 @@ class RandomQuoteGenerator:
         quote = random.choice(filtered)
         self.history.append(quote)
 
-
         self.quote_text.config(text=f"\"{quote['text']}\"")
         self.author_text.config(text=f"— {quote['author']}")
         self.topic_text.config(text=f"Тема: {quote['topic']}")
+
 
         self.update_history_display()
 
@@ -98,6 +98,7 @@ class RandomQuoteGenerator:
         self.history_list.delete(1.0, tk.END)
         for i, quote in enumerate(self.history[-20:], 1):
             self.history_list.insert(tk.END, f"{i}. \"{quote['text']}\"\n — {quote['author']} ({quote['topic']})\n\n")
+
     def update_filters(self):
         authors = sorted(set(q["author"] for q in self.quotes))
         topics = sorted(set(q["topic"] for q in self.quotes))
@@ -105,13 +106,18 @@ class RandomQuoteGenerator:
         self.author_filter["values"] = ["Все"] + authors
         self.topic_filter["values"] = ["Все"] + topics
 
+
         self.author_filter.set("Все")
         self.topic_filter.set("Все")
+
     def apply_filters(self, event=None):
         pass  # Фильтрация происходит при генерации цитаты
+
+
     def clear_history(self):
         self.history = []
         self.update_history_display()
+
     def save_data(self):
         data = {
             "quotes": self.quotes,
@@ -120,15 +126,22 @@ class RandomQuoteGenerator:
         with open("quotes_data.json", "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
         messagebox.showinfo("Успех", "Данные сохранены в quotes_data.json")
+
     def load_data(self):
         if os.path.exists("quotes_data.json"):
             try:
                 with open("quotes_data.json", "r", encoding="utf-8") as f:
                     data = json.load(f)
-            self.quotes = data.get("quotes", self.quotes)
-            self.history = data.get("history", [])
+                self.quotes = data.get("quotes", self.quotes)
+                self.history = data.get("history", [])
+            except json.JSONDecodeError:
+                messagebox.showerror("Ошибка", "Файл quotes_data.json повреждён. Используются стандартные цитаты.")
             except Exception as e:
-                messagebox.showerror("Ошибка", f"Ошибка загрузки данных: {e}")
+                messagebox.showerror("Ошибка", f"Неизвестная ошибка при загрузке данных: {e}")
+        else:
+            # Если файла нет, используем предопределённые цитаты и пустую историю
+            self.quotes = self.quotes  # уже инициализированы
+            self.history = []
 
 if __name__ == "__main__":
     root = tk.Tk()
